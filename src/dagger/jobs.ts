@@ -8,7 +8,7 @@ export enum Job {
 
 const exclude = ["zig-cache", "zig-out"];
 
-const ZIG_VERSION = Deno.env.get("ZIG_VERSION") || "0.10.0";
+const ZIG_VERSION = Deno.env.get("ZIG_VERSION") || "0.10.1";
 
 const baseCtr = (client: Client, name: string) =>
   withDevbox(

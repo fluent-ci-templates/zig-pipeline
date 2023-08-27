@@ -32,7 +32,7 @@ dagger run fluentci .
 
 | Variable        | Description                                    |
 | --------------- | ---------------------------------------------- |
-| `ZIG_VERSION`   | The version of Zig to use. Defaults to `0.10.0` |
+| `ZIG_VERSION`   | The version of Zig to use. Defaults to `0.10.1` |
 
 ## Jobs
 
