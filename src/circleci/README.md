@@ -32,7 +32,7 @@ jobs:
           sudo mv bin/dagger /usr/local/bin
           dagger version
       - run:
-          name: Upload Coverage
+          name: Run Dagger Pipelines
           command: dagger run fluentci zig_pipeline
     machine:
       image: ubuntu-2004:2023.07.1
