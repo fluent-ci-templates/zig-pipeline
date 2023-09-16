@@ -1,12 +1,12 @@
-import Client from "@dagger.io/dagger";
-import { withDevbox } from "https://deno.land/x/nix_installer_pipeline@v0.3.6/src/dagger/steps.ts";
+import Client from "@fluentci.io/dagger";
+import { withDevbox } from "https://nix.fluentci.io/v0.5.0/src/dagger/steps.ts";
 
 export enum Job {
   test = "test",
   build = "build",
 }
 
-const exclude = ["zig-cache", "zig-out"];
+export const exclude = ["zig-cache", "zig-out"];
 
 const ZIG_VERSION = Deno.env.get("ZIG_VERSION") || "0.10.1";
 
