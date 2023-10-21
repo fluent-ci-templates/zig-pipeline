@@ -14,6 +14,7 @@ const baseCtr = (client: Client, name: string, version?: string) =>
     .pipeline(name)
     .container()
     .from("ghcr.io/fluentci-io/devbox:latest")
+    .withExec(["sh", "-c", "devbox version update"])
     .withExec(["mv", "/nix/store", "/nix/store-orig"])
     .withMountedCache("/nix/store", client.cacheVolume("nix-cache"))
     .withExec([
@@ -21,7 +22,6 @@ const baseCtr = (client: Client, name: string, version?: string) =>
       "-c",
       'cp -r /nix/store-orig/* /nix/store/ && eval "$(devbox global shellenv --recompute)"',
     ])
-    .withExec(["sh", "-c", "devbox version update"])
     .withExec([
       "devbox",
       "global",
