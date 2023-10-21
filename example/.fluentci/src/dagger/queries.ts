@@ -1,13 +1,13 @@
 import { gql } from "../../deps.ts";
 
 export const test = gql`
-  query test($src: String!) {
-    test(src: $src)
+  query test($src: String!, $version: String!) {
+    test(src: $src, version: $version)
   }
 `;
 
 export const build = gql`
-  query build($src: String!) {
-    build(src: $src)
+  query build($src: String!, $version: String!) {
+    build(src: $src, version: $version)
   }
 `;

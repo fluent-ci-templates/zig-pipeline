@@ -59,9 +59,11 @@ export interface NexusGenArgTypes {
   Query: {
     build: { // args
       src: string; // String!
+      version: string; // String!
     }
     test: { // args
       src: string; // String!
+      version: string; // String!
     }
   }
 }
