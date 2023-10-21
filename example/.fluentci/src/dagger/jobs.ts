@@ -13,20 +13,13 @@ const baseCtr = (client: Client, name: string, version?: string) =>
   client
     .pipeline(name)
     .container()
-    .from("ghcr.io/fluentci-io/devbox:latest")
-    .withExec(["mv", "/nix/store", "/nix/store-orig"])
-    .withMountedCache("/nix/store", client.cacheVolume("nix-cache"))
+    .from("pkgxdev/pkgx:latest")
+    .withMountedCache("/root/.pkgx", client.cacheVolume("pkgx-cache"))
+    .withEnvVariable("PATH", "$HOME/.local/bin:$PATH", { expand: true })
     .withExec([
       "sh",
       "-c",
-      'cp -r /nix/store-orig/* /nix/store/ && eval "$(devbox global shellenv)"',
-    ])
-    .withExec(["sh", "-c", "devbox version update"])
-    .withExec([
-      "devbox",
-      "global",
-      "add",
-      `zig@${ZIG_VERSION || version || "0.10.1"}`,
+      `pkgx install zig@${ZIG_VERSION || version || "0.11"}`,
     ]);
 
 export const test = async (src = ".", version?: string) => {
@@ -36,11 +29,7 @@ export const test = async (src = ".", version?: string) => {
       .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
       .withDirectory("/app", context, { exclude })
       .withWorkdir("/app")
-      .withExec([
-        "sh",
-        "-c",
-        'eval "$(devbox global shellenv)" && zig build test',
-      ]);
+      .withExec(["sh", "-c", "zig build test"]);
 
     const result = await ctr.stdout();
 
@@ -56,7 +45,7 @@ export const build = async (src = ".", version?: string) => {
       .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
       .withDirectory("/app", context, { exclude })
       .withWorkdir("/app")
-      .withExec(["sh", "-c", 'eval "$(devbox global shellenv)" && zig build']);
+      .withExec(["sh", "-c", "zig build"]);
 
     await ctr.directory("/app/zig-out").export("zig-out");
 
