@@ -16,7 +16,11 @@ const baseCtr = (client: Client, name: string, version?: string) =>
     .from("ghcr.io/fluentci-io/devbox:latest")
     .withExec(["mv", "/nix/store", "/nix/store-orig"])
     .withMountedCache("/nix/store", client.cacheVolume("nix-cache"))
-    .withExec(["sh", "-c", "cp -r /nix/store-orig/* /nix/store/"])
+    .withExec([
+      "sh",
+      "-c",
+      'cp -r /nix/store-orig/* /nix/store/ && eval "$(devbox global shellenv)"',
+    ])
     .withExec(["sh", "-c", "devbox version update"])
     .withExec([
       "devbox",
