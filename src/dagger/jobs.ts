@@ -19,7 +19,7 @@ const baseCtr = (client: Client, name: string, version?: string) =>
     .withExec([
       "sh",
       "-c",
-      'cp -r /nix/store-orig/* /nix/store/ && eval "$(devbox global shellenv)"',
+      'cp -r /nix/store-orig/* /nix/store/ && eval "$(devbox global shellenv --recompute)"',
     ])
     .withExec(["sh", "-c", "devbox version update"])
     .withExec([
