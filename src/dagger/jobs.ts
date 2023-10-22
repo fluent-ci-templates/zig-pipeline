@@ -1,4 +1,4 @@
-import Client, { withDevbox } from "../../deps.ts";
+import Client, { connect } from "../../deps.ts";
 
 export enum Job {
   test = "test",
@@ -7,64 +7,63 @@ export enum Job {
 
 export const exclude = ["zig-cache", "zig-out"];
 
-const ZIG_VERSION = Deno.env.get("ZIG_VERSION") || "0.10.1";
+const ZIG_VERSION = Deno.env.get("ZIG_VERSION");
 
-const baseCtr = (client: Client, name: string) =>
-  withDevbox(
-    client
-      .pipeline(name)
-      .container()
-      .from("alpine:latest")
-      .withExec(["apk", "update"])
-      .withExec(["apk", "add", "bash", "curl"])
-      .withMountedCache("/nix", client.cacheVolume("nix"))
-      .withMountedCache("/etc/nix", client.cacheVolume("nix-etc"))
-  ).withExec(["devbox", "global", "add", `zig@${ZIG_VERSION}`]);
+const baseCtr = (client: Client, name: string, version?: string) =>
+  client
+    .pipeline(name)
+    .container()
+    .from("pkgxdev/pkgx:latest")
+    .withMountedCache("/root/.pkgx", client.cacheVolume("pkgx-cache"))
+    .withEnvVariable("PATH", "$HOME/.local/bin:$PATH", { expand: true })
+    .withExec([`pkgx`, "install", `zig@${ZIG_VERSION || version || "0.11"}`]);
 
-export const test = async (client: Client, src = ".") => {
-  const context = client.host().directory(src);
-  const ctr = baseCtr(client, Job.test)
-    .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
-    .withDirectory("/app", context, { exclude })
-    .withWorkdir("/app")
-    .withExec([
-      "sh",
-      "-c",
-      'eval "$(devbox global shellenv)" && zig build test',
-    ]);
+export const test = async (src = ".", version?: string) => {
+  await connect(async (client: Client) => {
+    const context = client.host().directory(src);
+    const ctr = baseCtr(client, Job.test, version)
+      .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
+      .withDirectory("/app", context, { exclude })
+      .withWorkdir("/app")
+      .withExec(["sh", "-c", "zig build test"]);
 
-  const result = await ctr.stdout();
+    const result = await ctr.stdout();
 
-  console.log(result);
+    console.log(result);
+  });
+  return "Done";
 };
 
-export const build = async (client: Client, src = ".") => {
-  const context = client.host().directory(src);
-  const ctr = baseCtr(client, Job.build)
-    .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
-    .withDirectory("/app", context, { exclude })
-    .withWorkdir("/app")
-    .withExec(["sh", "-c", 'eval "$(devbox global shellenv)" && zig build']);
+export const build = async (src = ".", version?: string) => {
+  await connect(async (client: Client) => {
+    const context = client.host().directory(src);
+    const ctr = baseCtr(client, Job.build, version)
+      .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
+      .withDirectory("/app", context, { exclude })
+      .withWorkdir("/app")
+      .withExec(["sh", "-c", "zig build"]);
 
-  await ctr.directory("/app/zig-out").export("zig-out");
+    await ctr.directory("/app/zig-out").export("zig-out");
 
-  const result = await ctr.stdout();
+    const result = await ctr.stdout();
 
-  console.log(result);
+    console.log(result);
+  });
+  return "Done";
 };
 
 export type JobExec = (
-  client: Client,
-  src?: string
+  src?: string,
+  version?: string
 ) =>
-  | Promise<void>
+  | Promise<string>
   | ((
-      client: Client,
       src?: string,
+      version?: string,
       options?: {
         ignore: string[];
       }
-    ) => Promise<void>);
+    ) => Promise<string>);
 
 export const runnableJobs: Record<Job, JobExec> = {
   [Job.test]: test,
