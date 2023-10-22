@@ -16,11 +16,7 @@ const baseCtr = (client: Client, name: string, version?: string) =>
     .from("pkgxdev/pkgx:latest")
     .withMountedCache("/root/.pkgx", client.cacheVolume("pkgx-cache"))
     .withEnvVariable("PATH", "$HOME/.local/bin:$PATH", { expand: true })
-    .withExec([
-      "sh",
-      "-c",
-      `pkgx install zig@${ZIG_VERSION || version || "0.11"}`,
-    ]);
+    .withExec([`pkgx`, "install", `zig@${ZIG_VERSION || version || "0.11"}`]);
 
 export const test = async (src = ".", version?: string) => {
   await connect(async (client: Client) => {
