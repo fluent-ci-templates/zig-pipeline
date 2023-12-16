@@ -1,4 +1,6 @@
-import Client, { connect } from "../../deps.ts";
+import { Client, Directory } from "../../sdk/client.gen.ts";
+import { connect } from "../../sdk/connect.ts";
+import { getDirectory } from "./lib.ts";
 
 export enum Job {
   test = "test",
@@ -18,52 +20,65 @@ const baseCtr = (client: Client, name: string, version?: string) =>
     .withEnvVariable("PATH", "$HOME/.local/bin:$PATH", { expand: true })
     .withExec([`pkgx`, "install", `zig@${ZIG_VERSION || version || "0.11"}`]);
 
-export const test = async (src = ".", version?: string) => {
+/**
+ * @function
+ * @description Run tests
+ * @param {string | Directory} src
+ * @param {string} version
+ * @returns {Promise<string>}
+ */
+export async function test(
+  src: Directory | string = ".",
+  version?: string
+): Promise<string> {
+  let result = "";
   await connect(async (client: Client) => {
-    const context = client.host().directory(src);
+    const context = getDirectory(client, src);
     const ctr = baseCtr(client, Job.test, version)
       .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
       .withDirectory("/app", context, { exclude })
       .withWorkdir("/app")
       .withExec(["sh", "-c", "zig build test"]);
 
-    const result = await ctr.stdout();
-
-    console.log(result);
+    result = await ctr.stdout();
   });
-  return "Done";
-};
+  return result;
+}
 
-export const build = async (src = ".", version?: string) => {
+/**
+ * @function
+ * @description Build the project
+ * @param {string | Directory} src
+ * @param {string} version
+ * @returns {Promise<Directory | string>}
+ */
+export async function build(
+  src: Directory | string = ".",
+  version?: string
+): Promise<Directory | string> {
+  let id = "";
   await connect(async (client: Client) => {
-    const context = client.host().directory(src);
+    const context = getDirectory(client, src);
     const ctr = baseCtr(client, Job.build, version)
       .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
       .withDirectory("/app", context, { exclude })
       .withWorkdir("/app")
-      .withExec(["sh", "-c", "zig build"]);
+      .withExec(["sh", "-c", "zig build"])
+      .withExec(["sh", "-c", "cp -r /app/zig-out /zig-out"]);
 
     await ctr.directory("/app/zig-out").export("zig-out");
 
-    const result = await ctr.stdout();
+    await ctr.stdout();
 
-    console.log(result);
+    id = await ctr.directory("/zig-out").id();
   });
-  return "Done";
-};
+  return id;
+}
 
 export type JobExec = (
-  src?: string,
+  src: Directory | string,
   version?: string
-) =>
-  | Promise<string>
-  | ((
-      src?: string,
-      version?: string,
-      options?: {
-        ignore: string[];
-      }
-    ) => Promise<string>);
+) => Promise<Directory | string>;
 
 export const runnableJobs: Record<Job, JobExec> = {
   [Job.test]: test,

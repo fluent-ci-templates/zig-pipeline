@@ -25,7 +25,15 @@ This will create a `.fluentci` folder in your project.
 Now you can run the pipeline with:
 
 ```bash
-dagger run fluentci .
+fluentci run .
+```
+
+## Dagger Module
+
+Use as a [Dagger](https://dagger.io) module:
+
+```bash
+dagger mod install github.com/fluent-ci-templates/zig-pipeline@mod
 ```
 
 ## Environment variables
@@ -41,9 +49,16 @@ dagger run fluentci .
 | test      | Run tests     |
 | build     | Build project |
 
-```graphql
-build(src: String!, version: String!): String
-test(src: String!, version: String!): String
+```typescript
+test(
+  src: Directory | string = ".",
+  version?: string
+): Promise<string>
+
+build(
+  src: Directory | string = ".",
+  version?: string
+): Promise<Directory | string>
 ```
 
 ## Programmatic usage
