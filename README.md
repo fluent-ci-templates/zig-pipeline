@@ -66,7 +66,7 @@ build(
 You can also use this pipeline programmatically:
 
 ```ts
-import { test, build } from "https://pkg.fluentci.io/zig_pipeline@v0.3.1/mod.ts";
+import { test, build } from "https://pkg.fluentci.io/zig_pipeline@v0.4.0/mod.ts";
 
 await test();
 await build();
