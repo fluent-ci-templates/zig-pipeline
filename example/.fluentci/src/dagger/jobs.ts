@@ -1,5 +1,4 @@
-import { Client, Directory } from "../../sdk/client.gen.ts";
-import { connect } from "../../sdk/connect.ts";
+import { Client, Directory, dag } from "../../sdk/client.gen.ts";
 import { getDirectory } from "./lib.ts";
 
 export enum Job {
@@ -12,7 +11,7 @@ export const exclude = ["zig-cache", "zig-out"];
 const ZIG_VERSION = Deno.env.get("ZIG_VERSION");
 
 const baseCtr = (client: Client, name: string, version?: string) =>
-  client
+  dag
     .pipeline(name)
     .container()
     .from("pkgxdev/pkgx:latest")
@@ -31,17 +30,14 @@ export async function test(
   src: Directory | string = ".",
   version?: string
 ): Promise<string> {
-  let result = "";
-  await connect(async (client: Client) => {
-    const context = getDirectory(client, src);
-    const ctr = baseCtr(client, Job.test, version)
-      .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
-      .withDirectory("/app", context, { exclude })
-      .withWorkdir("/app")
-      .withExec(["sh", "-c", "zig build test"]);
+  const context = await getDirectory(dag, src);
+  const ctr = baseCtr(dag, Job.test, version)
+    .withMountedCache("/app/zig-cache", dag.cacheVolume("zig-cache"))
+    .withDirectory("/app", context, { exclude })
+    .withWorkdir("/app")
+    .withExec(["sh", "-c", "zig build test"]);
 
-    result = await ctr.stdout();
-  });
+  const result = await ctr.stdout();
   return result;
 }
 
@@ -56,22 +52,19 @@ export async function build(
   src: Directory | string = ".",
   version?: string
 ): Promise<Directory | string> {
-  let id = "";
-  await connect(async (client: Client) => {
-    const context = getDirectory(client, src);
-    const ctr = baseCtr(client, Job.build, version)
-      .withMountedCache("/app/zig-cache", client.cacheVolume("zig-cache"))
-      .withDirectory("/app", context, { exclude })
-      .withWorkdir("/app")
-      .withExec(["sh", "-c", "zig build"])
-      .withExec(["sh", "-c", "cp -r /app/zig-out /zig-out"]);
+  const context = await getDirectory(dag, src);
+  const ctr = baseCtr(dag, Job.build, version)
+    .withMountedCache("/app/zig-cache", dag.cacheVolume("zig-cache"))
+    .withDirectory("/app", context, { exclude })
+    .withWorkdir("/app")
+    .withExec(["sh", "-c", "zig build"])
+    .withExec(["sh", "-c", "cp -r /app/zig-out /zig-out"]);
 
-    await ctr.directory("/app/zig-out").export("zig-out");
+  await ctr.directory("/app/zig-out").export("zig-out");
 
-    await ctr.stdout();
+  await ctr.stdout();
 
-    id = await ctr.directory("/zig-out").id();
-  });
+  const id = await ctr.directory("/zig-out").id();
   return id;
 }
 

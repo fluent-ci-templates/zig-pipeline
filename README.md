@@ -11,7 +11,7 @@ A ready-to-use CI/CD Pipeline for your [Zig](https://ziglang.org/) projects.
 Run the following command in your project:
 
 ```bash
-dagger run fluentci zig_pipeline
+fluentci run zig_pipeline
 ```
 
 Or, if you want to use it as a template:
@@ -66,7 +66,7 @@ build(
 You can also use this pipeline programmatically:
 
 ```ts
-import { test, build } from "https://pkg.fluentci.io/zig_pipeline@v0.4.0/mod.ts";
+import { test, build } from "https://pkg.fluentci.io/zig_pipeline@v0.4.1/mod.ts";
 
 await test();
 await build();
