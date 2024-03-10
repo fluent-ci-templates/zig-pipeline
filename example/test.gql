@@ -1,5 +1,0 @@
-{
-  zig {
-    test(src: ".", version: "0.11")
-  }
-}

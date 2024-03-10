@@ -1,7 +1,4 @@
-import {
-  test,
-  build,
-} from "https://pkg.fluentci.io/zig_pipeline@v0.4.1/mod.ts";
+import { test, build } from "jsr:@fluentci/zig";
 
 await test();
 await build();

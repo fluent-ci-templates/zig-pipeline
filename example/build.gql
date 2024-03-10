@@ -1,5 +1,0 @@
-{
-  zig {
-    build(src: ".", version: "0.11")
-  }
-}

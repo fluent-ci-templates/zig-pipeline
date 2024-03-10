@@ -1,5 +1,0 @@
-{
-  "root": "",
-  "name": "zig",
-  "sdkRuntime": "tsiry/dagger-sdk-deno"
-}
