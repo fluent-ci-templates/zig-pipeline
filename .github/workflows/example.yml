@@ -14,8 +14,8 @@ jobs:
           wasm: true
           plugin: .
           args: |
-            test
-            build
+            test --summary all
+            build --summary all
           working-directory: example
       - name: Run Dagger Pipelines
         run: dagger run deno run -A ../src/dagger/runner.ts
