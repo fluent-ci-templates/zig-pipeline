@@ -17,6 +17,8 @@ jobs:
             test --summary all
             build --summary all
           working-directory: example
+        env:
+          ZIG_VERSION: 0.11.0
       - name: Run Dagger Pipelines
         run: dagger run deno run -A ../src/dagger/runner.ts
         working-directory: example
